@@ -1,43 +1,84 @@
-import { Button, SafeAreaView, StyleSheet, Text, View } from 'react-native'
-import React from 'react'
-import { boarderHeight } from '@/constant'
-import Animated, { useSharedValue,useAnimatedStyle,withTiming,withSpring,withDecay } from 'react-native-reanimated'
+import {
+  Button,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from "react-native";
+import React from "react";
+import { ballRadius, ballSpeed, boarderHeight } from "@/constant";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  useFrameCallback,
+  withTiming,
+  withSpring,
+  withDecay,
+  Easing,
+  withSequence,
+  withRepeat,
+  withDelay,
+} from "react-native-reanimated";
+import { BallData } from "@/types";
+import Ball from "./Ball";
+import { GameContext, useGameContext } from "@/GameContext";
 
 const Game = () => {
-  const x=useSharedValue(1)
-  const moveBall=()=>{
-    x.value=withDecay({velocity:300})
-  }
-  const ballStyles=useAnimatedStyle(()=>{
-    return{
-      left:x.value*2,
-      top:x.value*2
-    }
-  })
+  const { width } = useWindowDimensions();
+  // const moveBall = () => {
+  //   // x.value=withDecay({velocity:300})
+  //   // x.value=withTiming(x.value+100,{duration:1000,easing:Easing.bounce})
+  //   // x.value=withRepeat(withSequence(
+  //   //   withTiming(150),
+  //   //   withTiming(120),
+  //   //   withTiming(150)
+  //   // ),-1)
+  //   ball.value.x = withDelay(
+  //     1000,
+  //     withSequence(withTiming(150), withTiming(120), withTiming(150))
+  //   );
+  // };
+  const ball = useSharedValue<BallData>({
+    x: width / 2,
+    y: boarderHeight - ballRadius,
+    r: ballRadius,
+    dx: -1,
+    dy: -1,
+  });
+  const { ball: ballContext } = useGameContext();
+  // console.log(ballContext, "conttext",ball);
   return (
-    <SafeAreaView style={style.container}>
-      <View style={style.board}>
-        <Animated.View style={[{width:50,height:50,backgroundColor:"white",borderRadius:50,position:"absolute",top:boarderHeight/2},ballStyles]}>
-        </Animated.View>
-      </View>
-      <Button onPress={moveBall} title='Move'>
-    
-      </Button>
-    </SafeAreaView>
-  )
-}
+    <GameContext.Provider value={{ ball }}>
+      <SafeAreaView style={style.container}>
+        <View style={style.board}>
+          <Ball />
+        </View>
+        <Button
+          onPress={() => {
+            ball;
+          }}
+          title="Move"
+        ></Button>
+      </SafeAreaView>
+    </GameContext.Provider>
+  );
+};
 
-export default Game
+export default Game;
 
-const style=StyleSheet.create({
-  container:{
-    flex:1,
-    backgroundColor:"#292929"
+const style = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#292929",
   },
-  board:{
-    backgroundColor:"#202020",
-    height:boarderHeight,
-    marginVertical:"auto",
-    overflow:"hidden"
-  }
-})
+  board: {
+    backgroundColor: "#202020",
+    height: boarderHeight,
+    marginVertical: "auto",
+    overflow: "hidden",
+  },
+});
+
+// CommandError: Network connection is unreliable. Try again with the environment variable `EXPO_OFFLINE=1` to
+// skip network requests.

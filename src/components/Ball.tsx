@@ -8,10 +8,11 @@ import Animated, {
 } from "react-native-reanimated";
 import { ballSpeed, boarderHeight } from "@/constant";
 import { useGameContext } from "@/GameContext";
+import { getResetPositionAndDirection } from "@/utils";
 
 export default function Ball() {
   const { width } = useWindowDimensions();
-  const { ball, isUserTurn, onEndTurn } = useGameContext();
+  const { ball, isUserTurn, onEndTurn, blocks } = useGameContext();
 
   const ballStyles = useAnimatedStyle(() => {
     const { x, y, r } = ball!.value;
@@ -51,6 +52,20 @@ export default function Ball() {
       x = r;
     }
     ball!.value = { ...ball!.value, x, y, dy, dx };
+
+    //check coalition with the blocks
+    blocks?.modify((blocks) => {
+      blocks
+        .filter((block) => block.val > 0)
+        .forEach((block) => {
+          const newBallData = getResetPositionAndDirection(ball!.value, block);
+          if (newBallData) {
+            ball!.value = newBallData;
+            block.val -= 1;
+          }
+        });
+      return blocks;
+    });
   }, false);
   const startFrameCallback = (val: boolean) => {
     frameCallback.setActive(val);

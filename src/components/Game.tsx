@@ -2,12 +2,11 @@ import {
   Button,
   SafeAreaView,
   StyleSheet,
-  Text,
   useWindowDimensions,
   View,
 } from "react-native";
 import React from "react";
-import { ballRadius, ballSpeed, boarderHeight } from "@/constant";
+import { ballRadius, blockW, boarderHeight } from "@/constant";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -20,10 +19,12 @@ import Animated, {
   withRepeat,
   withDelay,
 } from "react-native-reanimated";
-import { BallData } from "@/types";
+import { BallData, BlockData } from "@/types";
 import Ball from "./Ball";
 import { GameContext, useGameContext } from "@/GameContext";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import Block from "./Block";
+import { generateBlockRows } from "@/utils";
 
 const Game = () => {
   const { width } = useWindowDimensions();
@@ -64,7 +65,8 @@ const Game = () => {
       const x = e.translationX;
       const y = e.translationY;
       const mag = Math.sqrt(x * x + y * y);
-      console.log(ball.value.dy);
+      // const { dx, dy }
+      // console.log(mag, dx, dy);
       ball.value = {
         ...ball.value,
         dx: -x / mag,
@@ -86,11 +88,20 @@ const Game = () => {
       transform: [{ rotate: `${angle}rad` }],
     };
   });
+  const blocks = useSharedValue<BlockData[]>(
+    Array(3)
+      .fill(0)
+      .flatMap((_, row) => generateBlockRows(row + 1))
+  );
   return (
-    <GameContext.Provider value={{ ball, isUserTurn, onEndTurn }}>
+    <GameContext.Provider value={{ ball, isUserTurn, onEndTurn, blocks }}>
       <GestureDetector gesture={pan}>
         <SafeAreaView style={style.container}>
           <View style={style.board}>
+            {blocks.value.map((block, index) => (
+              <Block index={index} key={index} />
+            ))}
+            {/* <Block block={block} /> */}
             <Ball />
             <Animated.View
               style={[
